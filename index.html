@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jekiphone - Dashboard Flipping HP</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <div class="header">
+        <h1>📱 jekiphone - Dashboard Jual Beli HP</h1>
+        <p style="margin: 5px 0 0; color: #64748b;">Sistem Pencatatan Otomatis Perputaran Kas & Profit</p>
+    </div>
+
+    <div class="summary-grid">
+        <div class="card">
+            <div class="card-title">Total Modal & Top Up</div>
+            <div class="card-value" id="val-modal">Rp 0</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Total Unit Terjual</div>
+            <div class="card-value" id="val-unit">0 Unit</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Total Profit Bersih</div>
+            <div class="card-value text-green" id="val-profit">Rp 0</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Saldo Kas Real-Time</div>
+            <div class="card-value text-green" id="val-kas">Rp 0</div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <div class="flex-header">
+            <h3 style="margin: 0; color: var(--dark);">➕ Tambah Transaksi Baru</h3>
+        </div>
+        <form id="txForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Jenis Transaksi</label>
+                    <select id="jenisTx" onchange="toggleForm()">
+                        <option value="Jual Beli">Flipping (Jual Beli HP)</option>
+                        <option value="Deposit">Top Up Modal / Tabungan</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tanggal</label>
+                    <input type="date" id="tanggal" required>
+                </div>
+                <div class="form-group fp">
+                    <label>Merk & Seri HP (ex: iPhone 13)</label>
+                    <input type="text" id="merk" placeholder="Masukkan seri perangkat">
+                </div>
+                <div class="form-group fp">
+                    <label>RAM/Storage (ex: 8/256GB)</label>
+                    <input type="text" id="storage" placeholder="Kapasitas memori">
+                </div>
+                <div class="form-group fp">
+                    <label>Platform Jual</label>
+                    <select id="platform">
+                        <option value="Maujual">Maujual</option>
+                        <option value="Kitar">Kitar</option>
+                        <option value="FB/OLX">FB Marketplace / OLX</option>
+                        <option value="Lainnya">Lainnya / Personal</option>
+                    </select>
+                </div>
+                <div class="form-group topup-only" style="display: none;">
+                    <label>Keterangan Top Up</label>
+                    <input type="text" id="keterangan" placeholder="Sumber dana...">
+                </div>
+            </div>
+            
+            <div class="form-grid" style="margin-top: 15px;">
+                <div class="form-group fp topup-amount">
+                    <label id="labelBeli">Harga Beli HP (Rp)</label>
+                    <input type="number" id="hargaBeli" value="0" min="0">
+                </div>
+                <div class="form-group fp">
+                    <label>Biaya Servis/Ongkir/Aksesoris (Rp)</label>
+                    <input type="number" id="biayaTambahan" value="0" min="0">
+                </div>
+                <div class="form-group fp">
+                    <label>Harga Jual (Rp)</label>
+                    <input type="number" id="hargaJual" value="0" min="0">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn">Simpan Transaksi</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <h3 style="margin: 0 0 15px 0; color: var(--dark);">📋 Riwayat Mutasi Saldo & Perangkat</h3>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Nama Perangkat / Transaksi</th>
+                        <th>Platform</th>
+                        <th class="number-right">Modal Keluar (Rp)</th>
+                        <th class="number-right">Harga Jual (Rp)</th>
+                        <th class="number-right">Profit (Rp)</th>
+                        <th class="number-right">Saldo Kas Akhir (Rp)</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
