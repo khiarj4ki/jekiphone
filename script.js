@@ -10,32 +10,34 @@ document.getElementById('tanggal').valueAsDate = new Date();
 
 function toggleForm() {
     const jenis = document.getElementById('jenisTx').value;
-    const fpElements = document.querySelectorAll('.fp');
-    const topupWrap = document.getElementById('topup-desc-wrap');
-    const labelBeli = document.getElementById('labelBeli');
+    const fieldMerk = document.getElementById('field-merk');
+    const fieldStorage = document.getElementById('field-storage');
+    const fieldPlatform = document.getElementById('field-platform');
+    const fieldKeterangan = document.getElementById('field-keterangan');
+    const fieldBiaya = document.getElementById('field-biaya');
+    const labelNominal = document.getElementById('labelNominal');
 
-    if (jenis === 'Deposit') {
-        // Sembunyikan field HP (Merk, RAM, Platform, Biaya Servis, Harga Jual)
-        fpElements.forEach(el => {
-            el.style.display = 'none';
-        });
-        // Tampilkan field Top Up
-        if (topupWrap) topupWrap.classList.remove('hidden');
-        if (topupWrap) topupWrap.style.display = 'block';
-        
-        // Ubah label input nominal
-        if (labelBeli) labelBeli.innerText = "Nominal Uang Masuk (Rp)";
-    } else {
-        // Tampilkan kembali field HP
-        fpElements.forEach(el => {
-            el.style.display = 'block';
-        });
-        // Sembunyikan field Top Up
-        if (topupWrap) topupWrap.classList.add('hidden');
-        if (topupWrap) topupWrap.style.display = 'none';
-        
-        // Kembalikan label beli
-        if (labelBeli) labelBeli.innerText = "Harga Beli HP (Rp)";
+    if (jenis === 'Beli HP') {
+        fieldMerk.style.display = 'block';
+        fieldStorage.style.display = 'block';
+        fieldPlatform.style.display = 'none';
+        fieldKeterangan.style.display = 'none';
+        fieldBiaya.style.display = 'block';
+        labelNominal.innerText = "Harga Beli Unit (Rp)";
+    } else if (jenis === 'Jual HP') {
+        fieldMerk.style.display = 'block';
+        fieldStorage.style.display = 'block';
+        fieldPlatform.style.display = 'block';
+        fieldKeterangan.style.display = 'none';
+        fieldBiaya.style.display = 'none';
+        labelNominal.innerText = "Harga Jual Unit (Rp)";
+    } else if (jenis === 'Deposit') {
+        fieldMerk.style.display = 'none';
+        fieldStorage.style.display = 'none';
+        fieldPlatform.style.display = 'none';
+        fieldKeterangan.style.display = 'block';
+        fieldBiaya.style.display = 'none';
+        labelNominal.innerText = "Nominal Uang Masuk (Rp)";
     }
 }
 
@@ -52,7 +54,7 @@ async function fetchTransactions() {
 }
 
 async function hapusBaris(id) {
-    if (confirm("Yakin ingin menghapus transaksi ini?")) {
+    if (confirm("Yakin ingin menghapus catatan transaksi ini?")) {
         const { error } = await supabase
             .from('mutasi_kas')
             .delete()
@@ -70,35 +72,46 @@ document.getElementById('txForm').addEventListener('submit', async function(e) {
 
     const jenis = document.getElementById('jenisTx').value;
     const tanggal = document.getElementById('tanggal').value;
+    const nominal = parseInt(document.getElementById('nominalUtama').value) || 0;
+    const biaya = parseInt(document.getElementById('biayaTambahan').value) || 0;
 
     let itemBaru = { jenis, tanggal };
 
-    if (jenis === 'Deposit') {
-        itemBaru.nama = document.getElementById('keterangan').value || 'Top Up Modal';
-        itemBaru.platform = 'Deposit';
-        itemBaru.modal_keluar = 0;
-        itemBaru.harga_beli = parseInt(document.getElementById('hargaBeli').value) || 0;
-        itemBaru.biaya_tambahan = 0;
-        itemBaru.harga_jual = itemBaru.harga_beli;
-        itemBaru.profit = 0;
-    } else {
+    if (jenis === 'Beli HP') {
+        const merk = document.getElementById('merk').value || 'Tanpa Nama';
+        const storage = document.getElementById('storage').value || '-';
+        itemBaru.nama = `${merk} (${storage})`;
+        itemBaru.platform = 'Beli / Angkut';
+        itemBaru.harga_beli = nominal;
+        itemBaru.biaya_tambahan = biaya;
+        itemBaru.modal_keluar = nominal + biaya; // Kas Keluar
+        itemBaru.harga_jual = 0;
+        itemBaru.profit = -(nominal + biaya);
+    } else if (jenis === 'Jual HP') {
         const merk = document.getElementById('merk').value || 'Tanpa Nama';
         const storage = document.getElementById('storage').value || '-';
         itemBaru.nama = `${merk} (${storage})`;
         itemBaru.platform = document.getElementById('platform').value;
-        itemBaru.harga_beli = parseInt(document.getElementById('hargaBeli').value) || 0;
-        itemBaru.biaya_tambahan = parseInt(document.getElementById('biayaTambahan').value) || 0;
-        itemBaru.harga_jual = parseInt(document.getElementById('hargaJual').value) || 0;
-        itemBaru.modal_keluar = itemBaru.harga_beli + itemBaru.biaya_tambahan;
-        itemBaru.profit = itemBaru.harga_jual - itemBaru.modal_keluar;
+        itemBaru.harga_beli = 0;
+        itemBaru.biaya_tambahan = 0;
+        itemBaru.modal_keluar = 0;
+        itemBaru.harga_jual = nominal; // Kas Masuk
+        itemBaru.profit = nominal;
+    } else if (jenis === 'Deposit') {
+        itemBaru.nama = document.getElementById('keterangan').value || 'Top Up Dana Pribadi';
+        itemBaru.platform = 'Kas Masuk';
+        itemBaru.harga_beli = 0;
+        itemBaru.biaya_tambahan = 0;
+        itemBaru.modal_keluar = 0;
+        itemBaru.harga_jual = nominal; // Kas Masuk
+        itemBaru.profit = 0;
     }
 
     const { error } = await supabase.from('mutasi_kas').insert([itemBaru]);
 
     if (!error) {
-        document.getElementById('hargaBeli').value = "0";
+        document.getElementById('nominalUtama').value = "0";
         document.getElementById('biayaTambahan').value = "0";
-        document.getElementById('hargaJual').value = "0";
         document.getElementById('merk').value = "";
         document.getElementById('storage').value = "";
         document.getElementById('keterangan').value = "";
@@ -114,34 +127,36 @@ function renderTable() {
     tbody.innerHTML = '';
 
     let kasBerjalan = 0;
-    let totalProfit = 0;
-    let totalModalDeposit = 0;
-    let totalUnit = 0;
+    let totalDeposit = 0;
+    let totalOmset = 0;
+    let totalUnitJual = 0;
 
     dataTransaksi.forEach((tx) => {
-        if (tx.jenis === 'Deposit') {
-            kasBerjalan += Number(tx.harga_jual);
-            totalModalDeposit += Number(tx.harga_jual);
-        } else {
-            kasBerjalan += Number(tx.profit);
-            totalProfit += Number(tx.profit);
-            if (Number(tx.harga_jual) > 0) totalUnit++;
+        const keluar = Number(tx.modal_keluar) || 0;
+        const masuk = Number(tx.harga_jual) || 0;
+
+        kasBerjalan = kasBerjalan - keluar + masuk;
+
+        if (tx.jenis === 'Deposit') totalDeposit += masuk;
+        if (tx.jenis === 'Jual HP') {
+            totalOmset += masuk;
+            totalUnitJual++;
         }
 
-        let badgeStyle = "bg-amber-100 text-amber-800 border-amber-200";
-        if (tx.platform === 'Maujual') badgeStyle = "bg-sky-100 text-sky-800 border-sky-200";
-        if (tx.platform === 'Kitar') badgeStyle = "bg-blue-100 text-blue-800 border-blue-200";
-        if (tx.platform === 'Deposit') badgeStyle = "bg-emerald-100 text-emerald-800 border-emerald-200";
+        // Badge styling
+        let badgeJenis = "bg-rose-100 text-rose-800 border-rose-200";
+        if (tx.jenis === 'Jual HP') badgeJenis = "bg-emerald-100 text-emerald-800 border-emerald-200";
+        if (tx.jenis === 'Deposit') badgeJenis = "bg-sky-100 text-sky-800 border-sky-200";
 
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
         tr.innerHTML = `
             <td class="px-4 py-3 text-slate-500 font-mono text-xs">${tx.tanggal.split('-').reverse().join('/')}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs font-bold rounded-md border ${badgeJenis}">${tx.jenis}</span></td>
             <td class="px-4 py-3 text-slate-800 font-semibold">${tx.nama}</td>
-            <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs font-bold rounded-md border ${badgeStyle}">${tx.platform}</span></td>
-            <td class="px-4 py-3 text-right font-mono text-slate-600">${tx.jenis === 'Deposit' ? '-' : formatRp(tx.modal_keluar)}</td>
-            <td class="px-4 py-3 text-right font-mono text-slate-800">${formatRp(tx.harga_jual)}</td>
-            <td class="px-4 py-3 text-right font-mono ${tx.profit > 0 ? 'text-emerald-600 font-bold' : 'text-slate-500'}">${tx.jenis === 'Deposit' ? '-' : (tx.profit > 0 ? '+' : '') + formatRp(tx.profit)}</td>
+            <td class="px-4 py-3 text-slate-600 text-xs">${tx.platform}</td>
+            <td class="px-4 py-3 text-right font-mono text-rose-600">${keluar > 0 ? '-' + formatRp(keluar) : '-'}</td>
+            <td class="px-4 py-3 text-right font-mono text-emerald-600">${masuk > 0 ? '+' + formatRp(masuk) : '-'}</td>
             <td class="px-4 py-3 text-right font-mono font-bold text-slate-900">${formatRp(kasBerjalan)}</td>
             <td class="px-4 py-3 text-center">
                 <button onclick="hapusBaris(${tx.id})" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-2.5 py-1 rounded border border-rose-200 transition">Hapus</button>
@@ -151,9 +166,11 @@ function renderTable() {
     });
 
     document.getElementById('val-kas').innerText = `Rp ${formatRp(kasBerjalan)}`;
-    document.getElementById('val-profit').innerText = `Rp ${formatRp(totalProfit)}`;
-    document.getElementById('val-modal').innerText = `Rp ${formatRp(totalModalDeposit)}`;
-    document.getElementById('val-unit').innerText = `${totalUnit} Unit`;
+    document.getElementById('val-modal').innerText = `Rp ${formatRp(totalDeposit)}`;
+    document.getElementById('val-omset').innerText = `Rp ${formatRp(totalOmset)}`;
+    document.getElementById('val-unit').innerText = `${totalUnitJual} Unit`;
 }
 
+// Inisialisasi awal tampilan form dan muat data
+toggleForm();
 fetchTransactions();
