@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>jekiphone - Dashboard Flipping HP</title>
     <link href="style.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -14,6 +13,7 @@
         <p style="margin: 5px 0 0; color: #64748b;">Sistem Pencatatan Otomatis Perputaran Kas & Profit</p>
     </div>
 
+    <!-- Summary Cards -->
     <div class="summary-grid">
         <div class="card">
             <div class="card-title">Total Modal & Top Up</div>
@@ -33,9 +33,11 @@
         </div>
     </div>
 
+    <!-- Input Form -->
     <div class="form-container">
         <div class="flex-header">
             <h3 style="margin: 0; color: var(--dark);">➕ Tambah Transaksi Baru</h3>
+            <button onclick="clearData()" class="btn btn-danger" style="width: auto;">Reset Semua Data</button>
         </div>
         <form id="txForm">
             <div class="form-grid">
@@ -93,6 +95,7 @@
         </form>
     </div>
 
+    <!-- Data Table -->
     <div class="table-container">
         <h3 style="margin: 0 0 15px 0; color: var(--dark);">📋 Riwayat Mutasi Saldo & Perangkat</h3>
         <div style="overflow-x: auto;">
@@ -110,6 +113,7 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
+                    <!-- Data akan dimuat melalui JavaScript -->
                 </tbody>
             </table>
         </div>
