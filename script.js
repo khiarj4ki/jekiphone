@@ -15,13 +15,27 @@ function toggleForm() {
     const labelBeli = document.getElementById('labelBeli');
 
     if (jenis === 'Deposit') {
-        fpElements.forEach(el => el.classList.add('hidden'));
-        topupWrap.classList.remove('hidden');
-        labelBeli.innerText = "Nominal Masuk (Rp)";
+        // Sembunyikan field HP (Merk, RAM, Platform, Biaya Servis, Harga Jual)
+        fpElements.forEach(el => {
+            el.style.display = 'none';
+        });
+        // Tampilkan field Top Up
+        if (topupWrap) topupWrap.classList.remove('hidden');
+        if (topupWrap) topupWrap.style.display = 'block';
+        
+        // Ubah label input nominal
+        if (labelBeli) labelBeli.innerText = "Nominal Uang Masuk (Rp)";
     } else {
-        fpElements.forEach(el => el.classList.remove('hidden'));
-        topupWrap.classList.add('hidden');
-        labelBeli.innerText = "Harga Beli HP (Rp)";
+        // Tampilkan kembali field HP
+        fpElements.forEach(el => {
+            el.style.display = 'block';
+        });
+        // Sembunyikan field Top Up
+        if (topupWrap) topupWrap.classList.add('hidden');
+        if (topupWrap) topupWrap.style.display = 'none';
+        
+        // Kembalikan label beli
+        if (labelBeli) labelBeli.innerText = "Harga Beli HP (Rp)";
     }
 }
 
