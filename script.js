@@ -11,17 +11,17 @@ document.getElementById('tanggal').valueAsDate = new Date();
 function toggleForm() {
     const jenis = document.getElementById('jenisTx').value;
     const fpElements = document.querySelectorAll('.fp');
-    const topupElements = document.querySelectorAll('.topup-only');
-    
+    const topupWrap = document.getElementById('topup-desc-wrap');
+    const labelBeli = document.getElementById('labelBeli');
+
     if (jenis === 'Deposit') {
-        fpElements.forEach(el => el.style.display = 'none');
-        topupElements.forEach(el => el.style.display = 'flex');
-        document.getElementById('labelBeli').innerText = "Nominal Uang Masuk (Rp)";
-        document.querySelector('.topup-amount').style.display = 'flex';
+        fpElements.forEach(el => el.classList.add('hidden'));
+        topupWrap.classList.remove('hidden');
+        labelBeli.innerText = "Nominal Masuk (Rp)";
     } else {
-        fpElements.forEach(el => el.style.display = 'flex');
-        topupElements.forEach(el => el.style.display = 'none');
-        document.getElementById('labelBeli').innerText = "Harga Beli HP (Rp)";
+        fpElements.forEach(el => el.classList.remove('hidden'));
+        topupWrap.classList.add('hidden');
+        labelBeli.innerText = "Harga Beli HP (Rp)";
     }
 }
 
@@ -31,24 +31,20 @@ async function fetchTransactions() {
         .select('*')
         .order('id', { ascending: true });
 
-    if (error) {
-        console.error("Error fetching data:", error);
-    } else {
+    if (!error && data) {
         dataTransaksi = data;
         renderTable();
     }
 }
 
 async function hapusBaris(id) {
-    if(confirm("Yakin ingin menghapus transaksi ini?")) {
+    if (confirm("Yakin ingin menghapus transaksi ini?")) {
         const { error } = await supabase
             .from('mutasi_kas')
             .delete()
             .eq('id', id);
 
-        if (!error) {
-            fetchTransactions(); 
-        }
+        if (!error) fetchTransactions();
     }
 }
 
@@ -57,19 +53,19 @@ document.getElementById('txForm').addEventListener('submit', async function(e) {
     const btnSubmit = e.target.querySelector('button[type="submit"]');
     btnSubmit.innerText = "Menyimpan...";
     btnSubmit.disabled = true;
-    
+
     const jenis = document.getElementById('jenisTx').value;
     const tanggal = document.getElementById('tanggal').value;
-    
+
     let itemBaru = { jenis, tanggal };
 
     if (jenis === 'Deposit') {
-        itemBaru.nama = document.getElementById('keterangan').value || 'Top Up Dana';
+        itemBaru.nama = document.getElementById('keterangan').value || 'Top Up Modal';
         itemBaru.platform = 'Deposit';
         itemBaru.modal_keluar = 0;
         itemBaru.harga_beli = parseInt(document.getElementById('hargaBeli').value) || 0;
         itemBaru.biaya_tambahan = 0;
-        itemBaru.harga_jual = itemBaru.harga_beli; 
+        itemBaru.harga_jual = itemBaru.harga_beli;
         itemBaru.profit = 0;
     } else {
         const merk = document.getElementById('merk').value || 'Tanpa Nama';
@@ -92,20 +88,17 @@ document.getElementById('txForm').addEventListener('submit', async function(e) {
         document.getElementById('merk').value = "";
         document.getElementById('storage').value = "";
         document.getElementById('keterangan').value = "";
-        
         fetchTransactions();
-    } else {
-        console.error("Error saving data:", error);
     }
-    
-    btnSubmit.innerText = "Simpan Transaksi";
+
+    btnSubmit.innerText = "💾 Simpan Transaksi";
     btnSubmit.disabled = false;
 });
 
 function renderTable() {
     const tbody = document.getElementById('tableBody');
     tbody.innerHTML = '';
-    
+
     let kasBerjalan = 0;
     let totalProfit = 0;
     let totalModalDeposit = 0;
@@ -116,26 +109,29 @@ function renderTable() {
             kasBerjalan += Number(tx.harga_jual);
             totalModalDeposit += Number(tx.harga_jual);
         } else {
-            kasBerjalan += Number(tx.profit); 
+            kasBerjalan += Number(tx.profit);
             totalProfit += Number(tx.profit);
-            if(Number(tx.harga_jual) > 0) totalUnit++;
+            if (Number(tx.harga_jual) > 0) totalUnit++;
         }
 
-        let badgeClass = 'badge-fb';
-        if(tx.platform === 'Maujual') badgeClass = 'badge-maujual';
-        if(tx.platform === 'Kitar') badgeClass = 'badge-kitar';
-        if(tx.platform === 'Deposit') badgeClass = 'badge-deposit';
+        let badgeStyle = "bg-amber-100 text-amber-800 border-amber-200";
+        if (tx.platform === 'Maujual') badgeStyle = "bg-sky-100 text-sky-800 border-sky-200";
+        if (tx.platform === 'Kitar') badgeStyle = "bg-blue-100 text-blue-800 border-blue-200";
+        if (tx.platform === 'Deposit') badgeStyle = "bg-emerald-100 text-emerald-800 border-emerald-200";
 
         const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition border-b border-slate-100";
         tr.innerHTML = `
-            <td>${tx.tanggal.split('-').reverse().join('/')}</td>
-            <td><strong>${tx.nama}</strong></td>
-            <td><span class="badge ${badgeClass}">${tx.platform}</span></td>
-            <td class="number-right">${tx.jenis === 'Deposit' ? '-' : formatRp(tx.modal_keluar)}</td>
-            <td class="number-right">${tx.jenis === 'Deposit' ? formatRp(tx.harga_jual) : formatRp(tx.harga_jual)}</td>
-            <td class="number-right ${tx.profit > 0 ? 'text-green' : ''}">${tx.jenis === 'Deposit' ? '-' : (tx.profit > 0 ? '+' : '') + formatRp(tx.profit)}</td>
-            <td class="number-right"><strong>${formatRp(kasBerjalan)}</strong></td>
-            <td><button onclick="hapusBaris(${tx.id})" class="btn-danger" style="border:none; border-radius:3px; cursor:pointer;">Hapus</button></td>
+            <td class="px-4 py-3 text-slate-500 font-mono text-xs">${tx.tanggal.split('-').reverse().join('/')}</td>
+            <td class="px-4 py-3 text-slate-800 font-semibold">${tx.nama}</td>
+            <td class="px-4 py-3"><span class="px-2 py-0.5 text-xs font-bold rounded-md border ${badgeStyle}">${tx.platform}</span></td>
+            <td class="px-4 py-3 text-right font-mono text-slate-600">${tx.jenis === 'Deposit' ? '-' : formatRp(tx.modal_keluar)}</td>
+            <td class="px-4 py-3 text-right font-mono text-slate-800">${formatRp(tx.harga_jual)}</td>
+            <td class="px-4 py-3 text-right font-mono ${tx.profit > 0 ? 'text-emerald-600 font-bold' : 'text-slate-500'}">${tx.jenis === 'Deposit' ? '-' : (tx.profit > 0 ? '+' : '') + formatRp(tx.profit)}</td>
+            <td class="px-4 py-3 text-right font-mono font-bold text-slate-900">${formatRp(kasBerjalan)}</td>
+            <td class="px-4 py-3 text-center">
+                <button onclick="hapusBaris(${tx.id})" class="text-xs bg-rose-50 hover:bg-rose-100 text-rose-600 font-semibold px-2.5 py-1 rounded border border-rose-200 transition">Hapus</button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
