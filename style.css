@@ -32,6 +32,7 @@ body {
     font-size: 28px; 
 }
 
+/* Summary Cards */
 .summary-grid { 
     display: grid; 
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
@@ -63,6 +64,7 @@ body {
 
 .text-green { color: var(--success); }
 
+/* Forms */
 .form-container { 
     background: white; 
     padding: 20px; 
@@ -115,6 +117,7 @@ input:focus, select:focus {
 .btn:hover { background: var(--primary-dark); }
 .btn-danger { background: var(--danger); margin-top: 0; padding: 5px 10px; font-size: 12px; }
 
+/* Table */
 .table-container { 
     background: white; 
     padding: 20px; 
