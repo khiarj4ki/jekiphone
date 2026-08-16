@@ -4,7 +4,54 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>jekiphone - Dashboard Flipping HP</title>
-    <link href="style.css" rel="stylesheet" type="text/css" />
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --border: #cbd5e1;
+        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; padding: 20px; background-color: #f1f5f9; color: #334155; }
+        .header { margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+        .header h1 { margin: 0; color: var(--dark); font-size: 28px; }
+        
+        /* Summary Cards */
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .card { background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); }
+        .card-title { font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase; margin-bottom: 5px; }
+        .card-value { font-size: 24px; font-weight: bold; color: var(--dark); }
+        .text-green { color: var(--success); }
+
+        /* Forms */
+        .form-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); margin-bottom: 25px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group { display: flex; flex-direction: column; }
+        label { font-size: 13px; font-weight: 600; margin-bottom: 5px; color: var(--dark); }
+        input, select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; margin-top: 15px; width: 100%; transition: 0.2s; }
+        .btn:hover { background: var(--primary-dark); }
+        .btn-danger { background: var(--danger); margin-top: 0; padding: 5px 10px; font-size: 12px; }
+
+        /* Table */
+        .table-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid var(--border); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { background: var(--dark); color: white; font-weight: 600; white-space: nowrap; }
+        tr:hover { background: var(--light); }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block;}
+        .badge-maujual { background: #e0f2fe; color: #0369a1; }
+        .badge-kitar { background: #dbeafe; color: #1e40af; }
+        .badge-fb { background: #fef3c7; color: #b45309; }
+        .badge-deposit { background: #dcfce7; color: #15803d; }
+        .number-right { text-align: right; font-family: monospace; font-size: 14px;}
+        
+        .flex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    </style>
 </head>
 <body>
 
@@ -16,7 +63,7 @@
     <!-- Summary Cards -->
     <div class="summary-grid">
         <div class="card">
-            <div class="card-title">Total Modal & Top Up</div>
+            <div class="card-title">Total Modal & Top Up Masuk</div>
             <div class="card-value" id="val-modal">Rp 0</div>
         </div>
         <div class="card">
@@ -98,27 +145,167 @@
     <!-- Data Table -->
     <div class="table-container">
         <h3 style="margin: 0 0 15px 0; color: var(--dark);">📋 Riwayat Mutasi Saldo & Perangkat</h3>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Nama Perangkat / Transaksi</th>
-                        <th>Platform</th>
-                        <th class="number-right">Modal Keluar (Rp)</th>
-                        <th class="number-right">Harga Jual (Rp)</th>
-                        <th class="number-right">Profit (Rp)</th>
-                        <th class="number-right">Saldo Kas Akhir (Rp)</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Data akan dimuat melalui JavaScript -->
-                </tbody>
-            </table>
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Nama Perangkat / Transaksi</th>
+                    <th>Platform</th>
+                    <th class="number-right">Modal Keluar (Rp)</th>
+                    <th class="number-right">Harga Jual (Rp)</th>
+                    <th class="number-right">Profit (Rp)</th>
+                    <th class="number-right">Saldo Kas Akhir (Rp)</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data akan dimuat melalui JavaScript -->
+            </tbody>
+        </table>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Inisialisasi Data dari Local Storage
+        let dataTransaksi = JSON.parse(localStorage.getItem('jekiphone_data')) || [];
+
+        // Format Uang Rupiah
+        const formatRp = (angka) => {
+            return new Intl.NumberFormat('id-ID').format(angka);
+        };
+
+        // Set Tanggal Hari Ini Default
+        document.getElementById('tanggal').valueAsDate = new Date();
+
+        // Toggle Form berdasarkan Jenis Transaksi
+        function toggleForm() {
+            const jenis = document.getElementById('jenisTx').value;
+            const fpElements = document.querySelectorAll('.fp');
+            const topupElements = document.querySelectorAll('.topup-only');
+            
+            if (jenis === 'Deposit') {
+                fpElements.forEach(el => el.style.display = 'none');
+                topupElements.forEach(el => el.style.display = 'flex');
+                document.getElementById('labelBeli').innerText = "Nominal Uang Masuk (Rp)";
+                document.querySelector('.topup-amount').style.display = 'flex';
+            } else {
+                fpElements.forEach(el => el.style.display = 'flex');
+                topupElements.forEach(el => el.style.display = 'none');
+                document.getElementById('labelBeli').innerText = "Harga Beli HP (Rp)";
+            }
+        }
+
+        // Fungsi Menghapus Seluruh Data
+        function clearData() {
+            if(confirm("Yakin ingin menghapus SEMUA data riwayat?")) {
+                dataTransaksi = [];
+                simpanData();
+                renderTable();
+            }
+        }
+
+        // Fungsi Menghapus Satu Baris
+        function hapusBaris(index) {
+            dataTransaksi.splice(index, 1);
+            simpanData();
+            renderTable();
+        }
+
+        function simpanData() {
+            localStorage.setItem('jekiphone_data', JSON.stringify(dataTransaksi));
+        }
+
+        // Submit Form Baru
+        document.getElementById('txForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const jenis = document.getElementById('jenisTx').value;
+            const tanggal = document.getElementById('tanggal').value;
+            
+            let itemBaru = { jenis, tanggal };
+
+            if (jenis === 'Deposit') {
+                itemBaru.nama = document.getElementById('keterangan').value || 'Top Up Dana';
+                itemBaru.platform = 'Deposit';
+                itemBaru.modal Keluar = 0;
+                itemBaru.hargaBeli = parseInt(document.getElementById('hargaBeli').value) || 0; // Disini hargaBeli dipakai sbg Nominal Masuk
+                itemBaru.biayaTambahan = 0;
+                itemBaru.hargaJual = itemBaru.hargaBeli; // Agar perhitungan saldo kas bertambah
+                itemBaru.profit = 0;
+            } else {
+                const merk = document.getElementById('merk').value || 'Tanpa Nama';
+                const storage = document.getElementById('storage').value || '-';
+                itemBaru.nama = `${merk} (${storage})`;
+                itemBaru.platform = document.getElementById('platform').value;
+                itemBaru.hargaBeli = parseInt(document.getElementById('hargaBeli').value) || 0;
+                itemBaru.biayaTambahan = parseInt(document.getElementById('biayaTambahan').value) || 0;
+                itemBaru.hargaJual = parseInt(document.getElementById('hargaJual').value) || 0;
+                itemBaru.modalKeluar = itemBaru.hargaBeli + itemBaru.biayaTambahan;
+                itemBaru.profit = itemBaru.hargaJual - itemBaru.modalKeluar;
+            }
+
+            dataTransaksi.push(itemBaru);
+            simpanData();
+            
+            // Reset form numbers
+            document.getElementById('hargaBeli').value = "0";
+            document.getElementById('biayaTambahan').value = "0";
+            document.getElementById('hargaJual').value = "0";
+            document.getElementById('merk').value = "";
+            document.getElementById('storage').value = "";
+            
+            renderTable();
+        });
+
+        // Tampilkan Data ke Tabel & Update Summary
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let kasBerjalan = 0;
+            let totalProfit = 0;
+            let totalModalDeposit = 0;
+            let totalUnit = 0;
+
+            dataTransaksi.forEach((tx, index) => {
+                // Kalkulasi Saldo Berjalan
+                if (tx.jenis === 'Deposit') {
+                    kasBerjalan += tx.hargaJual;
+                    totalModalDeposit += tx.hargaJual;
+                } else {
+                    kasBerjalan += tx.profit; // Profit = Harga Jual - Modal Keluar
+                    totalProfit += tx.profit;
+                    if(tx.hargaJual > 0) totalUnit++;
+                }
+
+                // Styling Badge Platform
+                let badgeClass = 'badge-fb';
+                if(tx.platform === 'Maujual') badgeClass = 'badge-maujual';
+                if(tx.platform === 'Kitar') badgeClass = 'badge-kitar';
+                if(tx.platform === 'Deposit') badgeClass = 'badge-deposit';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${tx.tanggal.split('-').reverse().join('/')}</td>
+                    <td><strong>${tx.nama}</strong></td>
+                    <td><span class="badge ${badgeClass}">${tx.platform}</span></td>
+                    <td class="number-right">${tx.jenis === 'Deposit' ? '-' : formatRp(tx.modalKeluar)}</td>
+                    <td class="number-right">${tx.jenis === 'Deposit' ? formatRp(tx.hargaJual) : formatRp(tx.hargaJual)}</td>
+                    <td class="number-right ${tx.profit > 0 ? 'text-green' : ''}">${tx.jenis === 'Deposit' ? '-' : (tx.profit > 0 ? '+' : '') + formatRp(tx.profit)}</td>
+                    <td class="number-right"><strong>${formatRp(kasBerjalan)}</strong></td>
+                    <td><button onclick="hapusBaris(${index})" class="btn-danger" style="border:none; border-radius:3px; cursor:pointer;">Hapus</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update Summary Cards
+            document.getElementById('val-kas').innerText = `Rp ${formatRp(kasBerjalan)}`;
+            document.getElementById('val-profit').innerText = `Rp ${formatRp(totalProfit)}`;
+            document.getElementById('val-modal').innerText = `Rp ${formatRp(totalModalDeposit)}`;
+            document.getElementById('val-unit').innerText = `${totalUnit} Unit`;
+        }
+
+        // Render pertama kali saat load
+        renderTable();
+    </script>
 </body>
 </html>
